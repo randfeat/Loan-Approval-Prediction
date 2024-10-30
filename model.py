@@ -48,8 +48,8 @@ def main():
         return train, categorical_columns
     
     
-    x_train = x_train.head(10000)
-    y_train = y_train.head(10000)
+    #x_train = x_train.head(10000)
+    #y_train = y_train.head(10000)
     
     
     ## Tunning Catboost, XGBoost, LightBoost using Optuna
@@ -151,14 +151,14 @@ def main():
         return objective(trial, model, use_encoding)
 
 
-    study_xgb = optuna.create_study(sampler=TPESampler(n_startup_trials=3, multivariate=True, seed=42), direction="maximize")
-    study_xgb.optimize(lambda trial: objective_pipeline(trial, 'xgb'), n_trials=10)
+    study_xgb = optuna.create_study(sampler=TPESampler(n_startup_trials=30, multivariate=True, seed=42), direction="maximize")
+    study_xgb.optimize(lambda trial: objective_pipeline(trial, 'xgb'), n_trials=100)
     
-    study_lxgb = optuna.create_study(sampler=TPESampler(n_startup_trials=3, multivariate=True, seed=42), direction="maximize")
-    study_lxgb.optimize(lambda trial: objective_pipeline(trial, 'lxgb'), n_trials=10)
+    study_lxgb = optuna.create_study(sampler=TPESampler(n_startup_trials=30, multivariate=True, seed=42), direction="maximize")
+    study_lxgb.optimize(lambda trial: objective_pipeline(trial, 'lxgb'), n_trials=100)
     
-    study_cat = optuna.create_study(sampler=TPESampler(n_startup_trials=3, multivariate=True, seed=42), direction="maximize")
-    study_cat.optimize(lambda trial: objective_pipeline(trial, 'catboost'), n_trials=10)
+    study_cat = optuna.create_study(sampler=TPESampler(n_startup_trials=30, multivariate=True, seed=42), direction="maximize")
+    study_cat.optimize(lambda trial: objective_pipeline(trial, 'catboost'), n_trials=100)
     
     ## Define Model Training function using the best parameters
     
@@ -198,7 +198,7 @@ def main():
             
             return prediction
             
-    x_test = x_test.head(10000)
+    #x_test = x_test.head(10000)
     
     final_train, cat_cols = preprocessing(x_train)
     final_test, cat_cols = preprocessing(x_test)
@@ -221,7 +221,10 @@ def main():
     ## Ensemble model prediction
     model_final = np.mean([xgb_prediction[:,1],lxgb_prediction[:,1],cat_prediction[:,1]], axis = 0)
     
-    print("bbbbb")
+    submission = pd.DataFrame(model_final, columns=["prediction"])
+    submission.index = x_test.index
+    
+    submission.to_csv("submission.csv", index=True)
     
     return 0
 
